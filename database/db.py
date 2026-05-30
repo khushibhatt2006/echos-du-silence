@@ -14,18 +14,16 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
-
-
 class Photo(Base):
     __tablename__ = "photos"
 
     id = Column(Integer, primary_key=True, index=True)
-    filename = Column(String, unique=True, nullable=False)
+    filename = Column(String, unique=True, nullable=False)       # Cloudinary public_id
     original_filename = Column(String, nullable=False)
     caption = Column(String(200), nullable=False)
     mood = Column(String(50), nullable=False)
     file_size = Column(BigInteger, default=0)
+    url = Column(String, nullable=True)                          # Cloudinary URL
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
@@ -36,15 +34,13 @@ class Photo(Base):
             "caption": self.caption,
             "mood": self.mood,
             "file_size": self.file_size,
-            "url": f"{BASE_URL}/uploads/{self.filename}",
+            "url": self.url,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
-
 
 def init_db():
     Base.metadata.create_all(bind=engine)
     print("✦ Database initialized")
-
 
 def get_db():
     db = SessionLocal()
